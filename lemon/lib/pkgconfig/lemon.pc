@@ -1,0 +1,10 @@
+prefix=/home/victhor/Documents/ia/ia-fi/lemon/
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: LEMON
+Description: Library of Efficient Models and Optimization in Networks
+Version: 1.0
+Libs: -L${libdir} -lemon
+Cflags: -I${includedir}

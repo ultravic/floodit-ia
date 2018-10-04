@@ -1,50 +1,44 @@
 #include <iostream>
-#include <string>
-#include <graphviz/cgraph.h>
+#include <lemon/list_graph.h>
+
+using namespace lemon;
+using namespace std;
 
 typedef struct {
 	int lines, columns, colors;
-	Agraph_t *table;
-} map_info_td;
+	ListGraph table;
+} flood_info_t;
 
-int createMap(map_info_td *mp)
+int solveFlood(flood_info_t *mp)
 {
-	int auxiliar[2];
-	int in;
-	Agnode_t *nd;
+	cin >> (*mp).lines >> (*mp).columns >> (*mp).colors;
 
-	std::cin >> (*mp).lines >> (*mp).columns >> (*mp).colors;
-
-	agattr(mp->table, AGNODE, "cor", "0");
+	ListGraph::NodeMap<int> map((*mp).table);
 
 	for (int i_index = 0; i_index < (*mp).lines; i_index++) {
-		auxiliar[0] = i_index;
 		for (int j_index = 0; j_index < (*mp).columns; j_index++) {
-			auxiliar[1] = j_index;
-			std::cin >> in;
-			nd = agnode(mp->table, str(auxiliar), FALSE);
-			agset(agnode(mp->table, agnameof(nd), TRUE), "cor", in);
+			ListGraph::Node nd = (*mp).table.addNode();
+			cin >> map[nd];
 		}
 	}
-	
-	//cout << (*mp).lines << " " << (*mp).columns << " " << (*mp).colors << endl;
 
-	//for (nd = agfstnode((*mp).table); nd; nd = agnxtnode((*mp).table, nd)) {
-	//	cout << map[n] << " ";
-	//	if ((*mp).table.id(n) % (*mp).lines == 0)
-	//		cout << endl;
-	//}
+	cout << (*mp).lines << " " << (*mp).columns << " " << (*mp).colors << endl;
 
-	return 0;	
+	for (ListGraph::NodeIt n((*mp).table); n != INVALID; ++n) {
+		cout << map[n] << ":" << (*mp).table.id(n) << " ";
+		if ((*mp).table.id(n) % (*mp).lines == 0)
+			cout << endl;
+	}
+
+	return 0;
 }
+
 
 int main()
 {
-	map_info_td map_info;
-	
-	createMap(&map_info);
+	flood_info_t fi_info;
 
-	//cout << "Nodes count: " << countNodes(map_info.table) << endl;
+	solveFlood(&fi_info);
 
 	return 0;
 }
