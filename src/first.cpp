@@ -14,13 +14,15 @@ int solveMap()
 	Agnode_t *node, *edon;
 	Agedge_t *edge;
 	node_data_t *data;
+	node_data_t *data_cp;
 
 	int lines, columns, colors, count;
 	char *temp = (char*)malloc(sizeof(char)*21);
+	char *auxi = (char*)malloc(sizeof(char)*21);
 
 	std::cin >> lines >> columns >> colors;
 	
-	graph_map = agopen("floodmap", Agundirected, NULL);
+	graph_map = agopen("floodmap", Agstrictundirected, NULL);
 
 	// Cria nodos com a cor
 	count = 1;
@@ -36,108 +38,191 @@ int solveMap()
 	}
 
 	count = 1;
-	
+
 	// Canto superior esquerdo
 	sprintf(temp, "%d", 1);
 	node = agnode(graph_map, temp, FALSE);
+	sprintf(auxi, "%d", 2);
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
+	edge = agedge(graph_map, node, edon, temp, TRUE);
+	sprintf(auxi, "%d", columns+1);
+	edon = agnode(graph_map, auxi, FALSE);
+	sprintf(temp, "%d", 1);
+	strcat(temp, auxi);
+	edge = agedge(graph_map, node, edon, temp, TRUE);
 	sprintf(temp, "%d", 2);
-	edon = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", count);
-	count++;
+	node = agnode(graph_map, temp, FALSE);
+	sprintf(auxi, "%d", columns+1);
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
 	edge = agedge(graph_map, node, edon, temp, TRUE);
-	sprintf(temp, "%d", columns+1);
-	edon = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", count);
-	count++;
-	edge = agedge(graph_map, node, edon, temp, TRUE);
-
+	
+	// Superior
+	for (int i_index = 2; i_index < columns - 1; i_index++) {
+		sprintf(temp, "%d", i_index);
+		node = agnode(graph_map, temp, FALSE);
+		sprintf(auxi, "%d", i_index+1);
+		edon = agnode(graph_map, auxi, FALSE);
+		strcat(temp, auxi);
+		edge = agedge(graph_map, node, edon, temp, TRUE);
+	}
+	
 	// Canto superior direito
 	sprintf(temp, "%d", columns);
 	node = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", columns-1);
-	edon = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", count);
-	count++;
+	sprintf(auxi, "%d", columns-1);
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
 	edge = agedge(graph_map, node, edon, temp, TRUE);
-	sprintf(temp, "%d", 2*columns);
-	edon = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", count);
-	count++;
+	sprintf(auxi, "%d", 2*columns);
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
+	edge = agedge(graph_map, node, edon, temp, TRUE);
+	sprintf(temp, "%d", columns-1);
+	node = agnode(graph_map, temp, FALSE);
+	sprintf(auxi, "%d", 2*columns);
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
 	edge = agedge(graph_map, node, edon, temp, TRUE);
 
-	
+	// Esquerda
+	for (int i_index = 1; i_index < lines - 2; i_index++) {
+		sprintf(temp, "%d", (i_index*columns)+1);
+		node = agnode(graph_map, temp, FALSE);
+		sprintf(auxi, "%d", ((i_index+1)*columns)+1);
+		edon = agnode(graph_map, auxi, FALSE);
+		strcat(temp, auxi);
+		edge = agedge(graph_map, node, edon, temp, TRUE);
+	}
+
 	// Canto inferior esquerdo
 	sprintf(temp, "%d", ((lines-1)*columns)+1);
 	node = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", ((lines-1)*columns)+2);
-	edon = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", count);
-	count++;
+	sprintf(auxi, "%d", ((lines-1)*columns)+2);
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
+	edge = agedge(graph_map, node, edon, temp, TRUE);
+	sprintf(auxi, "%d", ((lines-2)*columns)+1);
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
 	edge = agedge(graph_map, node, edon, temp, TRUE);
 	sprintf(temp, "%d", ((lines-2)*columns)+1);
-	edon = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", count);
-	count++;
+	node = agnode(graph_map, temp, FALSE);
+	sprintf(auxi, "%d", ((lines-1)*columns)+2);
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
 	edge = agedge(graph_map, node, edon, temp, TRUE);
 	
+	// Direita
+	for (int i_index = 2; i_index < lines - 1 ; i_index++) {
+		sprintf(temp, "%d", (i_index*columns));
+		node = agnode(graph_map, temp, FALSE);
+		sprintf(auxi, "%d", ((i_index+1)*columns));
+		edon = agnode(graph_map, auxi, FALSE);
+		strcat(temp, auxi);
+		edge = agedge(graph_map, node, edon, temp, TRUE);
+	}
 
 	// Canto inferior direito
 	sprintf(temp, "%d", lines*columns);
 	node = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", (lines*columns)-1);
-	edon = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", count);
-	count++;
+	sprintf(auxi, "%d", (lines*columns)-1);
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
+	edge = agedge(graph_map, node, edon, temp, TRUE);
+	sprintf(auxi, "%d", ((lines-1)*columns));
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
 	edge = agedge(graph_map, node, edon, temp, TRUE);
 	sprintf(temp, "%d", ((lines-1)*columns));
-	edon = agnode(graph_map, temp, FALSE);
-	sprintf(temp, "%d", count);
-	count++;
+	node = agnode(graph_map, temp, FALSE);
+	sprintf(auxi, "%d", (lines*columns)-1);
+	edon = agnode(graph_map, auxi, FALSE);
+	strcat(temp, auxi);
 	edge = agedge(graph_map, node, edon, temp, TRUE);
-
-	// Superior
-
-
-	// Esquerda
-
 	
-	// Direita
-	
-
 	// Inferior
-
+	for (int i_index = 2; i_index < columns - 1; i_index++) {
+		sprintf(temp, "%d", ((lines-1)*columns)+i_index);
+		node = agnode(graph_map, temp, FALSE);
+		sprintf(auxi, "%d", ((lines-1)*columns)+i_index+1);
+		edon = agnode(graph_map, auxi, FALSE);
+		strcat(temp, auxi);
+		edge = agedge(graph_map, node, edon, temp, TRUE);
+	}
 
 	// Meio
-	for (int i_index = 1; i_index < lines; i_index++) {
+	for (int i_index = 1; i_index < lines - 1; i_index++) {
 		for (int j_index = 2; j_index < columns; j_index++) {
-			sprintf(temp, "%d", (i_index*lines)+j_index);
+			sprintf(temp, "%d", (i_index*columns)+j_index);
 			node = agnode(graph_map, temp, FALSE);
-			sprintf(temp, "%d", (i_index*lines)+j_index+1);
-			edon = agnode(graph_map, temp, FALSE);
-			sprintf(temp, "%d", (i_index*lines)+j_index-1);
-			edon = agnode(graph_map, temp, FALSE);
-			sprintf(temp, "%d", ((i_index-1)*lines)+j_index);
-			edon = agnode(graph_map, temp, FALSE);
-			sprintf(temp, "%d", ((i_index+1)*lines)+j_index);
-			edon = agnode(graph_map, temp, FALSE);
-			sprintf(temp, "%d", ((i_index-1)*lines)+j_index+1);
-			edon = agnode(graph_map, temp, FALSE);
-			sprintf(temp, "%d", ((i_index-1)*lines)+j_index-1);
-			edon = agnode(graph_map, temp, FALSE);
-			sprintf(temp, "%d", ((i_index+1)*lines)+j_index+1);
-			edon = agnode(graph_map, temp, FALSE);
-			sprintf(temp, "%d", ((i_index+1)*lines)+j_index-1);
-			edon = agnode(graph_map, temp, FALSE);
+			sprintf(auxi, "%d", (i_index*columns)+j_index+1);
+			edon = agnode(graph_map, auxi, FALSE);
+			strcat(temp, auxi);
+			edge = agedge(graph_map, node, edon, temp, TRUE);
+			sprintf(auxi, "%d", (i_index*columns)+j_index-1);
+			edon = agnode(graph_map, auxi, FALSE);
+			sprintf(temp, "%d", (i_index*columns)+j_index);
+			strcat(temp, auxi);
+			edge = agedge(graph_map, node, edon, temp, TRUE);
+			sprintf(auxi, "%d", ((i_index-1)*columns)+j_index);
+			edon = agnode(graph_map, auxi, FALSE);
+			sprintf(temp, "%d", (i_index*columns)+j_index);
+			strcat(temp, auxi);
+			edge = agedge(graph_map, node, edon, temp, TRUE);
+			sprintf(auxi, "%d", ((i_index+1)*columns)+j_index);
+			edon = agnode(graph_map, auxi, FALSE);
+			sprintf(temp, "%d", (i_index*columns)+j_index);
+			strcat(temp, auxi);
+			edge = agedge(graph_map, node, edon, temp, TRUE);
+			sprintf(auxi, "%d", ((i_index-1)*columns)+j_index+1);
+			edon = agnode(graph_map, auxi, FALSE);
+			sprintf(temp, "%d", (i_index*columns)+j_index);
+			strcat(temp, auxi);
+			edge = agedge(graph_map, node, edon, temp, TRUE);
+			sprintf(auxi, "%d", ((i_index-1)*columns)+j_index-1);
+			edon = agnode(graph_map, auxi, FALSE);
+			sprintf(temp, "%d", (i_index*columns)+j_index);
+			strcat(temp, auxi);
+			edge = agedge(graph_map, node, edon, temp, TRUE);
+			sprintf(auxi, "%d", ((i_index+1)*columns)+j_index+1);
+			edon = agnode(graph_map, auxi, FALSE);
+			sprintf(temp, "%d", (i_index*columns)+j_index);
+			strcat(temp, auxi);
+			edge = agedge(graph_map, node, edon, temp, TRUE);
+			sprintf(auxi, "%d", ((i_index+1)*columns)+j_index-1);
+			edon = agnode(graph_map, auxi, FALSE);
+			sprintf(temp, "%d", (i_index*columns)+j_index);
+			strcat(temp, auxi);
+			edge = agedge(graph_map, node, edon, temp, TRUE);
 		}
 	}
 
+	// Printa tabela
 	int lc = lines*columns;
 	for (int counter = 1; counter <= lc; counter++) {
 		sprintf(temp, "%d", counter);
 		node = agnode(graph_map, temp, FALSE);
 		data = (node_data_t*)aggetrec(node, temp, TRUE);
-		std::cout << data->color << " ";
+		std::cout << data->color << ":" << agdegree(graph_map, node, 1, 1) << " ";
 		if (counter % columns == 0) std::cout << "\n";
+	}
+
+	// Junta nodos
+	for (int counter = 1; counter <= lc; counter++) {
+		sprintf(temp, "%d", counter);
+		node = agnode(graph_map, temp, FALSE);
+		data = (node_data_t*)aggetrec(node, temp, TRUE);
+		for (edge = agfstedge(graph_map, node); edge; edge = agnxtedge(graph_map, edge, node)) {
+			std::cout << "TT\n";
+			data_cp = (node_data_t*)aggetrec(agtail(edge), temp, TRUE);
+			std::cout << "TTT\n";
+			if (data->color == data_cp->color) {
+				std::cout << "IGUAL\n";
+			}
+			std::cout << "TTTT\n";
+		}
 	}
 
 	
