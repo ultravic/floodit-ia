@@ -13,6 +13,7 @@ int solveMap()
 	Agraph_t *graph_map;
 	Agnode_t *node, *edon;
 	Agedge_t *edge;
+	Agedge_t *egde;
 	node_data_t *data;
 	node_data_t *data_cp;
 
@@ -22,7 +23,7 @@ int solveMap()
 
 	std::cin >> lines >> columns >> colors;
 	
-	graph_map = agopen("floodmap", Agstrictundirected, NULL);
+	graph_map = agopen("floodmap", Agundirected, NULL);
 
 	// Cria nodos com a cor
 	count = 1;
@@ -205,25 +206,44 @@ int solveMap()
 		sprintf(temp, "%d", counter);
 		node = agnode(graph_map, temp, FALSE);
 		data = (node_data_t*)aggetrec(node, temp, TRUE);
-		std::cout << data->color << ":" << agdegree(graph_map, node, 1, 1) << " ";
+		std::cout << data->color << " ";
 		if (counter % columns == 0) std::cout << "\n";
 	}
 
 	// Junta nodos
+	count = 0;
+	int del;
 	for (int counter = 1; counter <= lc; counter++) {
 		sprintf(temp, "%d", counter);
 		node = agnode(graph_map, temp, FALSE);
 		data = (node_data_t*)aggetrec(node, temp, TRUE);
 		for (edge = agfstedge(graph_map, node); edge; edge = agnxtedge(graph_map, edge, node)) {
+			std::cout << "T\n";
+			if (del) agdelnode(graph_map, edon);
 			std::cout << "TT\n";
-			data_cp = (node_data_t*)aggetrec(agtail(edge), temp, TRUE);
-			std::cout << "TTT\n";
-			if (data->color == data_cp->color) {
-				std::cout << "IGUAL\n";
+			del = 0;
+			if (strcmp(agnameof(node), agnameof(aghead(edge))) != 0) {
+				edon = aghead(edge);
+				data_cp = (node_data_t*)aggetrec(edon, agnameof(edon), TRUE);
+				if (data->color == data_cp->color) {
+					data->qtd++;
+					std::cout << "E\n";
+					for (egde = agfstedge(graph_map, edon); egde; egde = agnxtedge(graph_map, egde, edon)) {
+						sprintf(temp, "%s", agnameof(node));
+						strcat(temp, agnameof(aghead(egde)));
+						agedge(graph_map, node, aghead(egde), temp, FALSE);
+					}
+					del++;
+					std::cout << "DD\n";
+					std::cout << agnameof(node) << ":" << agnameof(edon) << "\n";
+				}
+				std::cout << "END\n";
 			}
-			std::cout << "TTTT\n";
 		}
 	}
+
+	std::cout << "Nodos: " << agnnodes(graph_map) << "\n";
+	std::cout << "Iguais: " << count << "\n";
 
 	
 	return 0;
