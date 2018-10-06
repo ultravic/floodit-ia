@@ -18,7 +18,6 @@ int solveMap()
 	node_data_t *data_cp;
 
 	int lines, columns, colors, count;
-	int *coloring = (int*)malloc(sizeof(int)*2*lines);
 	char *temp = (char*)malloc(sizeof(char)*21);
 	char *auxi = (char*)malloc(sizeof(char)*21);
 
@@ -203,14 +202,14 @@ int solveMap()
 
 	// Printa tabela
 	int lc = lines*columns;
-	for (int counter = 1; counter <= lc; counter++) {
+/*	for (int counter = 1; counter <= lc; counter++) {
 		sprintf(temp, "%d", counter);
 		node = agnode(graph_map, temp, FALSE);
 		data = (node_data_t*)aggetrec(node, temp, TRUE);
 		std::cout << data->color << " ";
 		if (counter % columns == 0) std::cout << "\n";
 	}
-
+*/
 
 	// Junta nodos
 	count = 0;
@@ -250,7 +249,7 @@ int solveMap()
 		}
 	}
 
-	std::cout << "\nNodes, edges and weight\n";
+/*	std::cout << "\nNodes, edges and weight\n";
 	for (int counter = 1; counter <= lc; counter++) {
 		sprintf(temp, "%d", counter);
 		node = agnode(graph_map, temp, FALSE);
@@ -265,10 +264,12 @@ int solveMap()
 		}
 	}
 	std::cout << "\n";
-
+*/
 	// Resolve mapa
-	
+
+	int *coloring = (int*)malloc(sizeof(int)*2*lines);
 	int greater;
+	coloring[0] = 0;
 	Agnode_t *heavier_node;
 	sprintf(temp, "%d", 1);
 	node = agnode(graph_map, temp, FALSE);
@@ -291,8 +292,6 @@ int solveMap()
 		data_cp = (node_data_t*)aggetrec(heavier_node, agnameof(heavier_node), TRUE);
 		data->color = data_cp->color;
 		data->qtd += data_cp->qtd;
-		coloring[0]++;
-		coloring[coloring[0]] = data->color;
 		for (egde = agfstedge(graph_map, heavier_node); egde; egde = agnxtedge(graph_map, egde, heavier_node)) {
 			sprintf(temp, "%s", agnameof(node));
 			if (strcmp(agnameof(heavier_node), agnameof(aghead(egde))) && strcmp(agnameof(node), agnameof(aghead(egde)))) {
@@ -305,33 +304,36 @@ int solveMap()
 		}
 		agdelnode(graph_map, heavier_node);
 		for (edge = agfstedge(graph_map, node); edge; edge = nxt_edge) {
-			sprintf(temp, "%s", agnameof(node));
 			if (strcmp(agnameof(node), agnameof(aghead(edge))))
 				edon = aghead(edge);
 			else if (strcmp(agnameof(node), agnameof(agtail(edge))))
 				edon = agtail(edge);
-			else
+			else {
+				nxt_edge = agnxtedge(graph_map, edge, node);	
 				continue;
+			}
 			data_cp = (node_data_t*)aggetrec(edon, agnameof(edon), TRUE);
-			if (data_cp->color == data->color) {
+			if (data->color == data_cp->color) {
 				data->qtd += data_cp->qtd;
-				for (egde = agfstedge(graph_map, heavier_node); egde; egde = agnxtedge(graph_map, egde, heavier_node)) {
+				for (egde = agfstedge(graph_map, edon); egde; egde = agnxtedge(graph_map, egde, edon)) {
 					sprintf(temp, "%s", agnameof(node));
-					if (strcmp(agnameof(heavier_node), agnameof(aghead(egde))) && strcmp(agnameof(node), agnameof(aghead(egde)))) {
-			       			strcat(temp, agnameof(aghead(egde)));
+					if (strcmp(agnameof(edon), agnameof(aghead(egde))) && strcmp(agnameof(node), agnameof(aghead(egde)))) {
+					       	strcat(temp, agnameof(aghead(egde)));
 						agedge(graph_map, node, aghead(egde), temp, TRUE);
-					} else if (strcmp(agnameof(heavier_node), agnameof(agtail(egde))) && strcmp(agnameof(node), agnameof(agtail(egde)))) {
-			       			strcat(temp, agnameof(agtail(egde)));
+					} else if (strcmp(agnameof(edon), agnameof(agtail(egde))) && strcmp(agnameof(node), agnameof(agtail(egde)))) {
+					       	strcat(temp, agnameof(agtail(egde)));
 						agedge(graph_map, node, agtail(egde), temp, TRUE);
 					}
 				}
+				
 				agdelnode(graph_map, edon);
 				nxt_edge = agfstedge(graph_map, node);
 			} else
 				nxt_edge = agnxtedge(graph_map, edge, node);
 		}
+		coloring[++coloring[0]] = data->color;
 	}
-	
+/*	
 	std::cout << "\nNodes, edges and weight\n";
 	for (int counter = 1; counter <= lc; counter++) {
 		sprintf(temp, "%d", counter);
@@ -347,7 +349,7 @@ int solveMap()
 		}
 	}
 	std::cout << "\n";
-
+*/
 	std::cout << coloring[0] << "\n";
 	for (int i_index = 1; i_index <= coloring[0]; i_index++)
 		std::cout << coloring[i_index] << " ";
