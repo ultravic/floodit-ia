@@ -3,10 +3,81 @@
 #include <strings.h>
 #include <graphviz/cgraph.h>
 
+// Estrutura para armazenar a cor e peso dos nodos
 typedef struct {
 	Agrec_t header;
-	int color, qtd;
+	int color, weight;
 } node_data_t;
+
+int reorganizeNodes(Agraph_t *graph_map, Agnode_t *node, node_data_t *data, int flag)
+{
+	Agnode_t *edon;
+	Agedge_t *edge, *egde, *nxt_edge;
+	node_data_t *data_cp;
+
+	char *temp = (char*)malloc(sizeof(char)*21);
+
+	if (flag) {
+		for (edge = agfstedge(graph_map, node); edge; edge = nxt_edge) {
+			if (strcmp(agnameof(node), agnameof(aghead(edge))))
+				edon = aghead(edge);
+			else if (strcmp(agnameof(node), agnameof(agtail(edge))))
+				edon = agtail(edge);
+			else {
+				nxt_edge = agnxtedge(graph_map, edge, node);
+				continue;
+			}
+			data_cp = (node_data_t*)aggetrec(edon, agnameof(edon), TRUE);
+			if (data->color == data_cp->color) {
+				data->weight += data_cp->weight;
+				for (egde = agfstedge(graph_map, edon); egde; egde = agnxtedge(graph_map, egde, edon)) {
+					sprintf(temp, "%s", agnameof(node));
+					if (strcmp(agnameof(edon), agnameof(aghead(egde))) && strcmp(agnameof(node), agnameof(aghead(egde)))) {
+						strcat(temp, agnameof(aghead(egde)));
+						agedge(graph_map, node, aghead(egde), temp, TRUE);
+					} else if (strcmp(agnameof(edon), agnameof(agtail(egde))) && strcmp(agnameof(node), agnameof(agtail(egde)))) {
+						strcat(temp, agnameof(agtail(egde)));
+						agedge(graph_map, node, agtail(egde), temp, TRUE);
+					}
+				}
+
+				agdelnode(graph_map, edon);
+				nxt_edge = agfstedge(graph_map, node);
+			} else
+				nxt_edge = agnxtedge(graph_map, edge, node);
+		}
+	} else {
+		for (edge = agfstedge(graph_map, node); edge; edge = nxt_edge) {
+			if (strcmp(agnameof(node), agnameof(aghead(edge))))
+				edon = aghead(edge);
+			else if (strcmp(agnameof(node), agnameof(agtail(edge))))
+				edon = agtail(edge);
+			else {
+				nxt_edge = agnxtedge(graph_map, edge, node);
+				continue;
+			}
+			data_cp = (node_data_t*)aggetrec(edon, agnameof(edon), TRUE);
+			if (data->color == data_cp->color) {
+				data->weight++;
+				for (egde = agfstedge(graph_map, edon); egde; egde = agnxtedge(graph_map, egde, edon)) {
+					sprintf(temp, "%s", agnameof(node));
+					if (strcmp(agnameof(edon), agnameof(aghead(egde))) && strcmp(agnameof(node), agnameof(aghead(egde)))) {
+						strcat(temp, agnameof(aghead(egde)));
+						agedge(graph_map, node, aghead(egde), temp, TRUE);
+					} else if (strcmp(agnameof(edon), agnameof(agtail(egde))) && strcmp(agnameof(node), agnameof(agtail(egde)))) {
+						strcat(temp, agnameof(agtail(egde)));
+						agedge(graph_map, node, agtail(egde), temp, TRUE);
+					}
+				}
+
+				agdelnode(graph_map, edon);
+				nxt_edge = agfstedge(graph_map, node);
+			} else
+				nxt_edge = agnxtedge(graph_map, edge, node);
+		}
+	}
+	return 0;
+}
 
 int solveMap()
 {
@@ -33,7 +104,7 @@ int solveMap()
 			node = agnode(graph_map, temp, TRUE);
 			data = (node_data_t*)agbindrec(node, temp, sizeof(node_data_t), TRUE);
 			std::cin >> data->color;
-			data->qtd = 1;
+			data->weight = 1;
 			count++;
 		}
 	}
@@ -205,37 +276,9 @@ int solveMap()
 		node = agnode(graph_map, temp, FALSE);
 		if (node) {
 			data = (node_data_t*)aggetrec(node, temp, TRUE);
-			for (edge = agfstedge(graph_map, node); edge; edge = nxt_edge) {
-				if (strcmp(agnameof(node), agnameof(aghead(edge))))
-					edon = aghead(edge);
-				else if (strcmp(agnameof(node), agnameof(agtail(edge))))
-					edon = agtail(edge);
-				else {
-					nxt_edge = agnxtedge(graph_map, edge, node);
-					continue;
-				}
-				data_cp = (node_data_t*)aggetrec(edon, agnameof(edon), TRUE);
-				if (data->color == data_cp->color) {
-					data->qtd++;
-					for (egde = agfstedge(graph_map, edon); egde; egde = agnxtedge(graph_map, egde, edon)) {
-						sprintf(temp, "%s", agnameof(node));
-						if (strcmp(agnameof(edon), agnameof(aghead(egde))) && strcmp(agnameof(node), agnameof(aghead(egde)))) {
-							strcat(temp, agnameof(aghead(egde)));
-							agedge(graph_map, node, aghead(egde), temp, TRUE);
-						} else if (strcmp(agnameof(edon), agnameof(agtail(egde))) && strcmp(agnameof(node), agnameof(agtail(egde)))) {
-							strcat(temp, agnameof(agtail(egde)));
-							agedge(graph_map, node, agtail(egde), temp, TRUE);
-						}
-					}
-
-					agdelnode(graph_map, edon);
-					nxt_edge = agfstedge(graph_map, node);
-				} else
-					nxt_edge = agnxtedge(graph_map, edge, node);
-			}
+			reorganizeNodes(graph_map, node, data, 0);
 		}
 	}
-
 
 	// Resolve mapa
 
@@ -248,22 +291,22 @@ int solveMap()
 	data = (node_data_t*)aggetrec(node, temp, TRUE);
 	while (agnnodes(graph_map) > 1) {
 		greater = 0;
-		for (edge = agfstedge(graph_map, node); edge; edge = nxt_edge) {
+		for (edge = agfstedge(graph_map, node); edge; edge = agnxtedge(graph_map, edge, node)) {
 			if (strcmp(agnameof(node), agnameof(aghead(edge))))
 				edon = aghead(edge);
 			else if (strcmp(agnameof(node), agnameof(agtail(edge))))
 				edon = agtail(edge);
 			else
-			continue;
+				continue;
 			data_cp = (node_data_t*)aggetrec(edon, agnameof(edon), TRUE);
-			if (data_cp->qtd > greater) {
-				greater = data_cp->qtd;
+			if (data_cp->weight > greater) {
+				greater = data_cp->weight;
 				heavier_node = edon;
 			}
 		}
 		data_cp = (node_data_t*)aggetrec(heavier_node, agnameof(heavier_node), TRUE);
 		data->color = data_cp->color;
-		data->qtd += data_cp->qtd;
+		data->weight += data_cp->weight;
 		for (egde = agfstedge(graph_map, heavier_node); egde; egde = agnxtedge(graph_map, egde, heavier_node)) {
 			sprintf(temp, "%s", agnameof(node));
 			if (strcmp(agnameof(heavier_node), agnameof(aghead(egde))) && strcmp(agnameof(node), agnameof(aghead(egde)))) {
@@ -275,34 +318,7 @@ int solveMap()
 			}
 		}
 		agdelnode(graph_map, heavier_node);
-		for (edge = agfstedge(graph_map, node); edge; edge = nxt_edge) {
-			if (strcmp(agnameof(node), agnameof(aghead(edge))))
-				edon = aghead(edge);
-			else if (strcmp(agnameof(node), agnameof(agtail(edge))))
-				edon = agtail(edge);
-			else {
-				nxt_edge = agnxtedge(graph_map, edge, node);
-				continue;
-			}
-			data_cp = (node_data_t*)aggetrec(edon, agnameof(edon), TRUE);
-			if (data->color == data_cp->color) {
-				data->qtd += data_cp->qtd;
-				for (egde = agfstedge(graph_map, edon); egde; egde = agnxtedge(graph_map, egde, edon)) {
-					sprintf(temp, "%s", agnameof(node));
-					if (strcmp(agnameof(edon), agnameof(aghead(egde))) && strcmp(agnameof(node), agnameof(aghead(egde)))) {
-						strcat(temp, agnameof(aghead(egde)));
-						agedge(graph_map, node, aghead(egde), temp, TRUE);
-					} else if (strcmp(agnameof(edon), agnameof(agtail(egde))) && strcmp(agnameof(node), agnameof(agtail(egde)))) {
-						strcat(temp, agnameof(agtail(egde)));
-						agedge(graph_map, node, agtail(egde), temp, TRUE);
-					}
-				}
-
-				agdelnode(graph_map, edon);
-				nxt_edge = agfstedge(graph_map, node);
-			} else
-				nxt_edge = agnxtedge(graph_map, edge, node);
-		}
+		reorganizeNodes(graph_map, node, data, 1);
 		coloring[++coloring[0]] = data->color;
 	}
 
