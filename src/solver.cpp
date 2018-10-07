@@ -1,21 +1,30 @@
+// Victor Picussa - GRR20163068
 #include <iostream>
 #include <stdlib.h>
 #include <strings.h>
 #include <graphviz/cgraph.h>
 
-// Estrutura para armazenar a cor e peso dos nodos
+//=============================Estruturas=====================================//
+// Estrutura para armazenar a cor e peso dos nodos.                            //
+//============================================================================//
 typedef struct {
 	Agrec_t header;
 	int color, weight;
 } node_data_t;
+//============================================================================//
 
-int reorganizeNodes(Agraph_t *graph_map, Agnode_t *node, node_data_t *data, int flag)
+//==========================reorganizeNodes===================================//
+// Agrupa nodos de cores iguais em um único node, criando arestas entre os    //
+// nodos filhos e nodo pai do nodo sendo analisado. No fim, o nodo analisado  //
+// é deletado.
+//============================================================================//
+void reorganizeNodes(Agraph_t *graph_map, Agnode_t *node, node_data_t *data, int flag)
 {
 	Agnode_t *edon;
 	Agedge_t *edge, *egde, *nxt_edge;
 	node_data_t *data_cp;
 
-	char *temp = (char*)malloc(sizeof(char)*21);
+	char *temp = (char*)malloc(sizeof(char)*42);
 
 	if (flag) {
 		for (edge = agfstedge(graph_map, node); edge; edge = nxt_edge) {
@@ -76,25 +85,39 @@ int reorganizeNodes(Agraph_t *graph_map, Agnode_t *node, node_data_t *data, int 
 				nxt_edge = agnxtedge(graph_map, edge, node);
 		}
 	}
-	return 0;
-}
 
+	free(temp);
+}
+//============================================================================//
+
+//=============================solveMap=======================================//
+// Resolve um mapa de cores, retorna uma sequência de ações para que o mapa   //
+// seja pintado até ter somente uma cor. O mapa deve ser passado como stdin.  //
+// O algoritmo tem o objetivo de juntar nodos iguais em um único e resolver,  //
+// começando pelo canto esquerdo, buscando o caminho de mair coloração,       //
+// verificando até uma profundidade 2.                                        //
+//============================================================================//
 int solveMap()
 {
 	Agraph_t *graph_map;
-	Agnode_t *node, *edon;
-	Agedge_t *edge, *nxt_edge;
-	Agedge_t *egde;
-	node_data_t *data;
-	node_data_t *data_cp;
+	Agnode_t *node, *edon, *heavier_node, *sec;
+	Agedge_t *edge, *egde;
+	node_data_t *data, *data_cp, *sec_data;
 
+	int greater, sec_greater;
 	int lines, columns, colors;
-	char *temp = (char*)malloc(sizeof(char)*21);
-	char *auxi = (char*)malloc(sizeof(char)*21);
 
 	std::cin >> lines >> columns >> colors;
 
-	graph_map = agopen("floodmap", Agundirected, NULL);
+	int *coloring = (int*)malloc(sizeof(int)*(lines*(columns/4)));
+
+	char *temp = (char*)malloc(sizeof(char)*42);
+	char *auxi = (char*)malloc(sizeof(char)*42);
+	char *fm = (char*)malloc(sizeof(char)*9);
+
+
+	sprintf(fm, "%s", "floodmap");
+	graph_map = agopen(fm, Agundirected, NULL);
 
 	// Cria nodos com a cor
 	int count = 1;
@@ -269,7 +292,9 @@ int solveMap()
 		}
 	}
 
-	// Junta nodos
+	free(auxi);
+
+	// Junta os nodos
 	int lc = lines*columns;
 	for (int counter = 1; counter <= lc; counter++) {
 		sprintf(temp, "%d", counter);
@@ -280,15 +305,13 @@ int solveMap()
 		}
 	}
 
-	// Resolve mapa
-
-	int *coloring = (int*)malloc(sizeof(int)*2*lines);
-	int greater;
-	coloring[0] = 0;
-	Agnode_t *heavier_node;
+	// Resolução do mapa
 	sprintf(temp, "%d", 1);
 	node = agnode(graph_map, temp, FALSE);
 	data = (node_data_t*)aggetrec(node, temp, TRUE);
+	heavier_node = aghead(agfstedge(graph_map, node));
+
+	coloring[0] = 0;
 	while (agnnodes(graph_map) > 1) {
 		greater = 0;
 		for (edge = agfstedge(graph_map, node); edge; edge = agnxtedge(graph_map, edge, node)) {
@@ -298,9 +321,21 @@ int solveMap()
 				edon = agtail(edge);
 			else
 				continue;
+			sec_greater = 0;
+			for (egde = agfstedge(graph_map, edon); egde; egde = agnxtedge(graph_map, egde, edon)) {
+				if (strcmp(agnameof(node), agnameof(aghead(egde))) && strcmp(agnameof(egde), agnameof(edon)))
+					sec = aghead(egde);
+				else if (strcmp(agnameof(node), agnameof(agtail(egde))) && strcmp(agnameof(egde), agnameof(edon)))
+					sec = agtail(egde);
+				else
+					continue;
+				sec_data = (node_data_t*)aggetrec(sec, agnameof(sec), TRUE);
+				if ((sec_data->weight) > sec_greater)
+					sec_greater = sec_data->weight;
+			}
 			data_cp = (node_data_t*)aggetrec(edon, agnameof(edon), TRUE);
-			if (data_cp->weight > greater) {
-				greater = data_cp->weight;
+			if ((data_cp->weight + sec_greater) > greater) {
+				greater = data_cp->weight + sec_greater;
 				heavier_node = edon;
 			}
 		}
@@ -322,13 +357,21 @@ int solveMap()
 		coloring[++coloring[0]] = data->color;
 	}
 
+	// Printa a quantidade e a sequência de coloração
 	std::cout << coloring[0] << "\n";
 	for (int i_index = 1; i_index <= coloring[0]; i_index++)
 		std::cout << coloring[i_index] << " ";
 	std::cout << "\n";
 
+	agclose(graph_map);
+	free(coloring);
+	free(temp);
+	free(auxi);
+	free(fm);
+
 	return 0;
 }
+//============================================================================//
 
 int main()
 {
@@ -336,5 +379,4 @@ int main()
 
 	return 0;
 }
-
-//------------------------------------------------------------------------------
+//============================================================================//

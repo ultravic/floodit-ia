@@ -1,9 +1,10 @@
+# Victor Picussa - GRR20163068
 CFLAGS = -Wall -O3
 CC = g++
 FILES = src/solver.cpp
 OUT = solver
 
-all: solver
+all: solver clean
 
 solver: solver.o
 	$(CC) $(FILES) -o $(OUT) $(CFLAGS) -l cgraph
@@ -14,5 +15,5 @@ solver.o:
 clean:
 	rm *.o
 
-purge: clean
+purge:
 	rm solver
